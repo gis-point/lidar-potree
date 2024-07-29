@@ -12,7 +12,7 @@ import requests
 def download_and_split_las_file(las_file_object_id, custom_splits_count=None) -> None:
     las_file_object = LasFileModel.objects.get(id=las_file_object_id)
 
-    if not las_file_object.downloaded():
+    if not las_file_object.downloaded:
         with requests.get(las_file_object.remote_download_url, stream=True) as r:
             r.raise_for_status()
             with open(las_file_object.local_path, "wb") as f:
