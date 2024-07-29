@@ -1,0 +1,95 @@
+version: '3.8'
+
+x-potree-backend-api-common-prod: &potree-backend-api-common-prod
+    env_file:
+        - .env.prod
+    entrypoint: scripts/entrypoint.sh
+    build:
+        context: .
+        dockerfile: Dockerfile
+    volumes:
+        - .:/usr/src/potree_backend
+    networks:
+        - cryptodouble_server
+    depends_on:
+        potree-backend-db-prod:
+            condition: service_healthy
+        potree-backend-redis-prod:
+            condition: service_healthy
+
+services:
+
+    potree-backend-db-prod:
+        container_name: potree-backend-db-prod
+        env_file:
+            - .env.prod
+        image: postgres:latest
+        volumes:
+            - ./postgres-data:/var/lib/postgresql/data
+        networks:
+            - cryptodouble_server
+        healthcheck:
+            test: pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}
+            timeout: 5s
+            retries: 20
+
+    potree-backend-redis-prod:
+        container_name: potree-backend-redis-prod
+        env_file:
+            - .env.prod
+        image: redis:7.0.4-alpine
+        volumes:
+            - redis-data:/usr/src/potree_backend/storage/redis/data
+        networks:
+            - cryptodouble_server
+        healthcheck:
+            test: [ 'CMD-SHELL', 'redis-cli ping | grep PONG' ]
+            timeout: 5s
+            retries: 20
+
+    potree-backend-api-prod:
+        <<: *potree-backend-api-common-prod
+        container_name: potree-backend-api-prod
+        command: api-deploy
+        expose:
+            - '8000'
+        labels:
+            - 'traefik.enable=true'
+            - 'traefik.http.routers.potree-backend-api-prod.rule=Host(`cryptodouble.net`) && PathPrefix(`/api`)'
+            - 'traefik.http.routers.potree-backend-api-prod.entrypoints=websecure'
+            - 'traefik.http.routers.potree-backend-api-prod.tls.certresolver=myresolver'
+            - 'traefik.http.routers.potree-backend-api-prod.service=potree-backend-api-prod'
+            - 'traefik.http.services.potree-backend-api-prod.loadbalancer.server.port=8000'
+
+    potree-backend-daphne-prod:
+        <<: *potree-backend-api-common-prod
+        container_name: potree-backend-daphne-prod
+        command: daphne
+        expose:
+            - '10000'
+        labels:
+            - 'traefik.enable=true'
+            - 'traefik.http.routers.potree-backend-daphne-prod.rule=Host(`cryptodouble.net`) && PathPrefix(`/ws`)'
+            - 'traefik.http.routers.potree-backend-daphne-prod.entrypoints=websecure'
+            - 'traefik.http.routers.potree-backend-daphne-prod.tls.certresolver=myresolver'
+            - 'traefik.http.routers.potree-backend-daphne-prod.service=potree-backend-daphne-prod'
+            - 'traefik.http.services.potree-backend-daphne-prod.loadbalancer.server.port=10000'
+
+    potree-backend-celery-worker-prod:
+        <<: *potree-backend-api-common-prod
+        container_name: potree-backend-celery-worker-prod
+        command: celery-worker
+
+    potree-backend-celery-beat-prod:
+        <<: *potree-backend-api-common-prod
+        container_name: potree-backend-celery-beat-prod
+        command: celery-beat
+
+networks:
+    cryptodouble_server:
+        external: true
+
+volumes:
+    redis-data:
+    minio-data:
+    pgadmin-data:

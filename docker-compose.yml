@@ -1,0 +1,99 @@
+version: '3.8'
+
+x-potree-backend-api-common-dev: &potree-backend-api-common-dev
+    env_file:
+        - .env
+    entrypoint: scripts/entrypoint.sh
+    build:
+        context: .
+        dockerfile: Dockerfile
+    volumes:
+        - .:/usr/src/potree_backend
+    networks:
+        - potree-backend-network-dev
+    depends_on:
+        potree-backend-db-dev:
+            condition: service_healthy
+        potree-backend-redis-dev:
+            condition: service_healthy
+
+services:
+    potree-backend-db-dev:
+        container_name: potree-backend-db-dev
+        env_file:
+            - .env
+        image: postgres:latest
+        volumes:
+            - ./postgres-data:/var/lib/postgresql/data
+        networks:
+            - potree-backend-network-dev
+        healthcheck:
+            test: pg_isready -U postgres -d postgres
+            timeout: 5s
+            retries: 20
+
+    potree-backend-redis-dev:
+        container_name: potree-backend-redis-dev
+        env_file:
+            - .env
+        image: redis:7.0.4-alpine
+        volumes:
+            - redis-data:/usr/src/potree_backend/storage/redis/data
+        networks:
+            - potree-backend-network-dev
+        healthcheck:
+            test: ['CMD-SHELL', 'redis-cli ping | grep PONG']
+            timeout: 5s
+            retries: 20
+
+    potree-backend-api-dev:
+        <<: *potree-backend-api-common-dev
+        container_name: potree-backend-api-dev
+        command: api
+        ports:
+            - 8000:8000
+
+    potree-backend-daphne-dev:
+        <<: *potree-backend-api-common-dev
+        container_name: potree-backend-daphne-dev
+        command: daphne
+        ports:
+            - 10000:10000
+
+    potree-backend-celery-worker-dev:
+        <<: *potree-backend-api-common-dev
+        container_name: potree-backend-celery-worker-dev
+        command: celery-worker
+
+    potree-backend-celery-beat-dev:
+        <<: *potree-backend-api-common-dev
+        container_name: potree-backend-celery-beat-dev
+        command: celery-beat
+
+    potree-backend-minio-dev:
+        container_name: potree-backend-minio-dev
+        env_file:
+            - .env
+        image: minio/minio
+        volumes:
+            - minio-data:/minio-data
+        command: 'minio server /minio-data --console-address ":9001"'
+        ports:
+            - 9000:9000
+            - 9001:9001
+        healthcheck:
+            test:
+                ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+            interval: 30s
+            timeout: 20s
+            retries: 3
+        networks:
+            - potree-backend-network-dev
+
+networks:
+    potree-backend-network-dev:
+        name: potree-backend-network-dev
+
+volumes:
+    redis-data:
+    minio-data:

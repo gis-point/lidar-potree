@@ -1,0 +1,1 @@
+from config.consumers.general_consumer import GeneralConsumer as GeneralConsumer

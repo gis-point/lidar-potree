@@ -1,0 +1,1 @@
+from config.instances.minio import MINIO_CLIENT_INSTANCE as MINIO_CLIENT_INSTANCE
