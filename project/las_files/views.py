@@ -30,6 +30,9 @@ from las_files.models import LasFileModel
 from las_files.serializers import LoadLasFileSerializer, LasFileDetailsSerializer
 from config.exceptions import ObjectNotFoundException
 
+from urllib.parse import urlparse
+import os
+
 
 class LoadLasFile(GenericAPIView):
     serializer_class = LoadLasFileSerializer
@@ -40,23 +43,24 @@ class LoadLasFile(GenericAPIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        lasFiles = LasFileModel.objects.filter(name="big_las_file")
+        remote_download_url = serializer.validated_data["file_url"]
+
+        parsed_url = urlparse(remote_download_url)
+        file_name_with_extension = os.path.basename(parsed_url.path)
+        file_name = os.path.splitext(file_name_with_extension)[0]
+
+        lasFiles = LasFileModel.objects.filter(name=file_name)
 
         las_file_object = None
-
-        remote_download_url = (
-            "https://lidar-potree.s3.eu-west-2.amazonaws.com/big_las_file.las"
-        )
-
         if not lasFiles.exists():
             las_file_object = LasFileModel.objects.create(
-                name="big_las_file",
-                local_path="big_las_file.las",
+                name=file_name,
+                local_path=file_name_with_extension,
                 remote_download_url=remote_download_url,
             )
         else:
             las_file_object = LasFileModel.objects.get(
-                name="big_las_file",
+                name=file_name,
             )
         download_and_split_las_file.delay(
             las_file_object.id, serializer.validated_data["custom_splits_count"]

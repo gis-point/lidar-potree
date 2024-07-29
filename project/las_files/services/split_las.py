@@ -17,7 +17,7 @@ def split_las(
     output_base,
     num_points_per_file=4000000,
     custom_splits_count=None,
-    max_file_size_mb=40000,
+    max_file_size_mb=1000000,
 ):
     input_las_file = laspy.file.File(las_file_object.local_path, mode="r")
 
