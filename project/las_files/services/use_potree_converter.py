@@ -1,7 +1,9 @@
 import subprocess
 import os
+from config.celery import celery
 
 
+@celery.task
 def use_potree_converter(input_file, output_dir):
     try:
         # Check if the output directory exists, and create it if it doesn't
@@ -9,7 +11,12 @@ def use_potree_converter(input_file, output_dir):
             os.makedirs(output_dir)
 
         # Construct the command
-        command = ["PotreeConverter/build/PotreeConverter", input_file, "-o", output_dir]
+        command = [
+            "PotreeConverter/build/PotreeConverter",
+            input_file,
+            "-o",
+            output_dir,
+        ]
 
         # Execute the command
         subprocess.run(command, check=True)
