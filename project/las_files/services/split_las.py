@@ -9,16 +9,21 @@ from las_files.services.upload_local_directory_to_minio import (
 from las_files.tasks.send_to_socket import send_to_general_layer
 from las_files.serializers import NewConvertedLasFileSerializer
 
+from config.celery import celery
 from django.conf import settings
+from las_files.models import LasFileModel
 
 
+@celery.task
 def split_las(
-    las_file_object,
+    las_file_object_id,
     output_base,
     num_points_per_file=4000000,
     custom_splits_count=None,
-    max_file_size_mb=1000000,
+    max_file_size_mb=20000,
 ):
+    las_file_object = LasFileModel.objects.get(id=las_file_object_id)
+
     input_las_file = laspy.file.File(las_file_object.local_path, mode="r")
 
     # Get number of points in the input LAS file

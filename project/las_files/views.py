@@ -43,10 +43,18 @@ class LoadLasFile(GenericAPIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        file_name_with_extension = ''
+        file_name  = ''
+        is_file_downloaded = False
         remote_download_url = serializer.validated_data["file_url"]
 
-        parsed_url = urlparse(remote_download_url)
-        file_name_with_extension = os.path.basename(parsed_url.path)
+        if not serializer.validated_data["local_file_url"]:
+            parsed_url = urlparse(remote_download_url)
+            file_name_with_extension = os.path.basename(parsed_url.path)
+
+        else:
+            file_name_with_extension = serializer.validated_data["local_file_url"]
+            is_file_downloaded = True
         file_name = os.path.splitext(file_name_with_extension)[0]
 
         lasFiles = LasFileModel.objects.filter(name=file_name)
@@ -57,6 +65,7 @@ class LoadLasFile(GenericAPIView):
                 name=file_name,
                 local_path=file_name_with_extension,
                 remote_download_url=remote_download_url,
+                downloaded=is_file_downloaded
             )
         else:
             las_file_object = LasFileModel.objects.get(

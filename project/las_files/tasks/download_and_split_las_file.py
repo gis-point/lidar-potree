@@ -25,7 +25,7 @@ def download_and_split_las_file(las_file_object_id, custom_splits_count=None) ->
         print(f"Las file {las_file_object.local_path} Downloaded")
     try:
         # if las_file_object.status == las_file_object.Status.NOT_CONVERTED:
-        split_las(las_file_object, "output", custom_splits_count=custom_splits_count)
+        split_las.delay(las_file_object.id, "output", custom_splits_count=custom_splits_count)
     finally:
         pass
         # if file and os.path.exists(file):

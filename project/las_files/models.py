@@ -14,7 +14,7 @@ class LasFileModel(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     local_path = models.CharField(max_length=100000)
-    remote_download_url = models.URLField(max_length=2000)
+    remote_download_url = models.URLField(max_length=2000, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(
         choices=Status.choices, max_length=100, default=Status.NOT_CONVERTED
