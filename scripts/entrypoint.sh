@@ -11,13 +11,6 @@ ApiDeploy()
 
 Api()
 {
-
-    git clone https://github.com/potree/PotreeConverter.git /usr/src/potree_backend/project/PotreeConverter
-    mkdir /usr/src/potree_backend/project/PotreeConverter/build 
-    cd /usr/src/potree_backend/project/PotreeConverter/build 
-    cmake .. 
-    make 
-    cd /usr/src/potree_backend/project
     python manage.py makemigrations --noinput
     python manage.py migrate --noinput
     python manage.py collectstatic --noinput
@@ -33,9 +26,14 @@ Daphne()
 
 CeleryWorker()
 {
+    git clone https://github.com/potree/PotreeConverter.git /usr/src/potree_backend/project/PotreeConverter
+    mkdir /usr/src/potree_backend/project/PotreeConverter/build 
+    cd /usr/src/potree_backend/project/PotreeConverter/build 
+    cmake .. 
+    make 
+    cd /usr/src/potree_backend/project
     celery -A config worker --loglevel=INFO --concurrency=8 -O fair -P prefork -n cel_app_worker
 }
-speedtest
 
 CeleryBeat()
 {

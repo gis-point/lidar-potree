@@ -90,6 +90,8 @@ local_settings.py
 celerybeat-schedule
 backup/
 
+PotreeConverter/
+
 .env
 .env.prod
 
