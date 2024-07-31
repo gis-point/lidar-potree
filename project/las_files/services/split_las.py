@@ -96,8 +96,8 @@ def split_las(
             remote_path_to_upload_on_minio,
         )
 
-        rmtree(potree_converter_output_path)
-        os.remove(output_las_file_path)
+        # rmtree(potree_converter_output_path)
+        # os.remove(output_las_file_path)
 
         send_to_general_layer(
             "new_converted_las_file",
