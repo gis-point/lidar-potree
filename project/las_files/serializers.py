@@ -10,10 +10,11 @@ from las_files.models import LasFileModel
 class LoadLasFileSerializer(Serializer):
     file_url: str = CharField(required=False, allow_null=True, max_length=100000)
     custom_splits_count = IntegerField(required=False, allow_null=True)
+    mb_to_process = IntegerField(min_value=1)
     local_file_url = CharField(required=False, allow_null=True, max_length=100000)
 
     class Meta:
-        fields = ["file_url", "custom_splits_count", "local_file_url"]
+        fields = ["file_url", "custom_splits_count", "local_file_url", "mb_to_process"]
 
 
 class LasFileDetailsSerializer(ModelSerializer):

@@ -20,7 +20,7 @@ def split_las(
     output_base,
     num_points_per_file=4000000,
     custom_splits_count=None,
-    max_file_size_mb=20000,
+    mb_to_process=20000,
 ):
     las_file_object = LasFileModel.objects.get(id=las_file_object_id)
 
@@ -30,7 +30,7 @@ def split_las(
     total_points = len(input_las_file)
 
     # Calculate the maximum number of points to read based on the max file size
-    max_file_size_bytes = max_file_size_mb * 1024 * 1024
+    max_file_size_bytes = mb_to_process * 1024 * 1024
     point_size = input_las_file.header.data_record_length
     max_points = max_file_size_bytes // point_size
 

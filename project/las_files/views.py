@@ -43,8 +43,8 @@ class LoadLasFile(GenericAPIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        file_name_with_extension = ''
-        file_name  = ''
+        file_name_with_extension = ""
+        file_name = ""
         is_file_downloaded = False
         remote_download_url = serializer.validated_data["file_url"]
 
@@ -65,14 +65,16 @@ class LoadLasFile(GenericAPIView):
                 name=file_name,
                 local_path=file_name_with_extension,
                 remote_download_url=remote_download_url,
-                downloaded=is_file_downloaded
+                downloaded=is_file_downloaded,
             )
         else:
             las_file_object = LasFileModel.objects.get(
                 name=file_name,
             )
         download_and_split_las_file.delay(
-            las_file_object.id, serializer.validated_data["custom_splits_count"]
+            las_file_object.id,
+            serializer.validated_data["custom_splits_count"],
+            serializer.validated_data["mb_to_process"],
         )
         return Response(LasFileDetailsSerializer(las_file_object).data, HTTP_200_OK)
 
