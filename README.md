@@ -1,5 +1,3 @@
-# BE_Ease Casino
-
 ## Install docker desktop
 
 > 1.  sudo apt update
@@ -16,4 +14,3 @@
 ## Run project
 
 In the main directory  run the command `sudo docker-compose up` or `sudo docker-compose up -d` this command will start the project without taking up your console
-# casino
